@@ -1,5 +1,4 @@
-
-import time
+import time, csv
 from threading import Thread
 from urllib.parse import urlparse, parse_qs
 from http.server import BaseHTTPRequestHandler,HTTPServer
@@ -27,16 +26,37 @@ async def main():
         
 
 
-def requestHandler_index():
+def requestHandler_index(message):
+    return "Options are 'say', 'color', and 'anim'!"
+
+
+def requestHandler_say(message):
     global CLIENTS
+
     
-    websockets.broadcast(CLIENTS, '{"messagetype": "test", "payload": "roffle"}')
+    with open('swearWords.csv') as swearWords_file:
+        swearWords = list(csv.reader(swearWords_file, delimiter=','))[0]
+        
+        
+        
+        for word in swearWords:
+            if message.find(" " + word + " ") != -1:
+                return "Sorry, your message contained a banned word!"
     
-    return "Hello"
+    if len(message) > 200:
+        return "Messages are limited to 200 characters!  Please try again."
+    else:
+        websockets.broadcast(CLIENTS, """{"messagetype": "say", "message": """" + message + """"}""")
+                             
+        return "Saying: {msg}".format(msg = message)
+        
+    
+    
 
 
 
-httpRequests = {''      : requestHandler_index
+httpRequests = {''      : requestHandler_index,
+                'say'   : requestHandler_say,
 				}
 
 class myHandler(BaseHTTPRequestHandler):
@@ -45,21 +65,30 @@ class myHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         jam = urlparse(self.path)
         elements = parse_qs(jam.query)
-        body = elements['Body']
+        if len(elements) > 0:
+            body = elements['Body'][0]
+            
+            print ("body: ", body)
+            
+            messageType = body.split(" ")[0]
+            message = body.split(" ", 1)[1]
+            
+            print ("messageType: ", messageType)
+            print ("message: ", message)
 
-        responseFound = False
-        for httpRequest, httpHandler in httpRequests.items():
-            if body == httpRequest: # in other words, if the first part matches
-                response = httpHandler()
-                responseFound = True
+            responseFound = False
+            for httpRequest, httpHandler in httpRequests.items():
+                if messageType == httpRequest: # in other words, if the first part matches
+                    response = httpHandler(message)
+                    responseFound = True
 
-        if not responseFound:
-            response = requestHandler_index()
+            if not responseFound:
+                response = requestHandler_index(message)
 
-        self.send_response(200)
-        self.send_header('Content-type', "text/plain")
-        self.end_headers()
-        self.wfile.write(bytes(response, "utf-8"))
+            self.send_response(200)
+            self.send_header('Content-type', "text/plain")
+            self.end_headers()
+            self.wfile.write(bytes(response, "utf-8"))
 			
         return
 
