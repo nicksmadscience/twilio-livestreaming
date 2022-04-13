@@ -1,0 +1,64 @@
+<html>
+    <head>
+        <title>Twilioverlay!</title>
+        <script type="text/javascript">
+
+function newWebsocket()
+{
+    console.log("new websocket");
+    s = new WebSocket("ws://10.0.0.44:8001/ws");
+
+    s.onopen = function(e)
+    {
+        console.log("opened websocket");
+    }
+
+    s.onclose = function(e)
+    {
+        console.log("closed websocket");
+
+        setTimeout(function() { newWebsocket(); }, 3000);
+    }
+
+    s.onmessage = function(e)
+    {
+        console.log(e.data);
+        var websocketMessage_array = JSON.parse(e.data);
+
+        var messageType = websocketMessage_array["messagetype"];
+        var payload = websocketMessage_array["payload"];
+
+        document.getElementById("text").innerHTML = payload;
+
+    }
+}
+
+
+window.onload = function()
+{
+    newWebsocket();
+}
+
+
+        </script>
+        <style type="text/css">
+
+body
+{
+    background: transparent;
+    width: 1920px;
+    height: 1080px;
+    color: yellow;
+}
+
+h1
+{
+    font-size: 150px;
+}
+
+        </style>
+    </head>
+    <body>
+        <h1 id="text">Greetings!</h1>
+    </body>
+</html>
