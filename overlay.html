@@ -26,9 +26,9 @@ function newWebsocket()
         var websocketMessage_array = JSON.parse(e.data);
 
         var messageType = websocketMessage_array["messagetype"];
-        var payload = websocketMessage_array["payload"];
+        var message = websocketMessage_array["message"];
 
-        document.getElementById("text").innerHTML = payload;
+        document.getElementById("text").innerHTML = message;
 
     }
 }

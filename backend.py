@@ -1,6 +1,6 @@
-import time, csv
+import time, csv, os.path
 from threading import Thread
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qsl
 from http.server import BaseHTTPRequestHandler,HTTPServer
 PORT_NUMBER = 8082
 
@@ -23,21 +23,35 @@ async def main():
     async with websockets.serve(handler, "", 8001):
         await asyncio.Future()  # run forever
         
+
+def bannedNumber(number):
+    if os.path.exists("banlist.txt"):
+        with open("banlist.txt", "r") as banlist_file:
+            if number in banlist_file.read():
+                return True
+    return False
+
+
+def log(event):
+    if not os.path.exists("log.csv"):
+        with open("log.csv", "w") as log_file:
+            logwriter = csv.writer(log_file)
+            logwriter.writerow(event.keys())
         
+    with open("log.csv", "a") as log_file:
+        logwriter = csv.writer(log_file)
+        logwriter.writerow(event.values())
 
 
 def requestHandler_index(message):
-    return "Options are 'say', 'color', and 'anim'!"
+    return "Options are 'Say', 'Color', and 'Anim'!"
 
 
 def requestHandler_say(message):
     global CLIENTS
 
-    
     with open('swearWords.csv') as swearWords_file:
         swearWords = list(csv.reader(swearWords_file, delimiter=','))[0]
-        
-        
         
         for word in swearWords:
             if message.find(" " + word + " ") != -1:
@@ -46,7 +60,7 @@ def requestHandler_say(message):
     if len(message) > 200:
         return "Messages are limited to 200 characters!  Please try again."
     else:
-        websockets.broadcast(CLIENTS, """{"messagetype": "say", "message": """" + message + """"}""")
+        websockets.broadcast(CLIENTS, "{\"messagetype\": \"say\", \"message\": \"" + message + "\"}")
                              
         return "Saying: {msg}".format(msg = message)
         
@@ -56,7 +70,7 @@ def requestHandler_say(message):
 
 
 httpRequests = {''      : requestHandler_index,
-                'say'   : requestHandler_say,
+                'Say'   : requestHandler_say,
 				}
 
 class myHandler(BaseHTTPRequestHandler):
@@ -64,26 +78,27 @@ class myHandler(BaseHTTPRequestHandler):
 	#Handler for the GET requests
     def do_GET(self):
         jam = urlparse(self.path)
-        elements = parse_qs(jam.query)
+        elements = dict(parse_qsl(jam.query))
+        log(elements)
         if len(elements) > 0:
-            body = elements['Body'][0]
             
-            print ("body: ", body)
-            
-            messageType = body.split(" ")[0]
-            message = body.split(" ", 1)[1]
-            
-            print ("messageType: ", messageType)
-            print ("message: ", message)
+            if bannedNumber(elements['From']):
+                response = "You have been banned from this service."
+                
+            else:
+                body = elements['Body']
+                
+                messageType = body.split(" ")[0]
+                message = body.split(" ", 1)[1]
 
-            responseFound = False
-            for httpRequest, httpHandler in httpRequests.items():
-                if messageType == httpRequest: # in other words, if the first part matches
-                    response = httpHandler(message)
-                    responseFound = True
+                responseFound = False
+                for httpRequest, httpHandler in httpRequests.items():
+                    if messageType == httpRequest: # in other words, if the first part matches
+                        response = httpHandler(message)
+                        responseFound = True
 
-            if not responseFound:
-                response = requestHandler_index(message)
+                if not responseFound:
+                    response = requestHandler_index(message)
 
             self.send_response(200)
             self.send_header('Content-type', "text/plain")
