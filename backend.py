@@ -63,6 +63,14 @@ def requestHandler_say(message):
         websockets.broadcast(CLIENTS, "{\"messagetype\": \"say\", \"message\": \"" + message + "\"}")
                              
         return "Saying: {msg}".format(msg = message)
+    
+    
+def requestHandler_color(message):
+    global CLIENTS
+    
+    websockets.broadcast(CLIENTS, "{\"messagetype\": \"color\", \"message\": \"" + message + "\"}")
+    
+    return "Changed color to {color}".format(color = message)
         
     
     
@@ -71,6 +79,7 @@ def requestHandler_say(message):
 
 httpRequests = {''      : requestHandler_index,
                 'Say'   : requestHandler_say,
+                'Color' : requestHandler_color,
 				}
 
 class myHandler(BaseHTTPRequestHandler):

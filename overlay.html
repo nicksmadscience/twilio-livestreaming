@@ -28,7 +28,16 @@ function newWebsocket()
         var messageType = websocketMessage_array["messagetype"];
         var message = websocketMessage_array["message"];
 
-        document.getElementById("text").innerHTML = message;
+        if (messageType == "say")
+        {
+            document.getElementById("text").innerHTML = message;
+        }
+        else if (messageType == "color")
+        {
+            document.getElementById("text").style.color = message;
+        }
+
+        
 
     }
 }
@@ -51,9 +60,12 @@ body
     color: yellow;
 }
 
-h1
+
+#text
 {
-    font-size: 150px;
+    font-size: 90px;
+    transition: all 1s;
+    position: absolute;
 }
 
         </style>
