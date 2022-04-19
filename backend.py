@@ -80,6 +80,7 @@ def requestHandler_color(message):
 httpRequests = {''      : requestHandler_index,
                 'Say'   : requestHandler_say,
                 'Color' : requestHandler_color,
+                'Position': requestHandler_position,
 				}
 
 class myHandler(BaseHTTPRequestHandler):
