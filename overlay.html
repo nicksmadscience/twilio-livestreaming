@@ -34,11 +34,19 @@ function newWebsocket()
         }
         else if (messageType == "color")
         {
-            document.getElementById("text").style.color = message;
+            document.getElementById("text").style.backgroundColor = message;
         }
+        else if (messageType == "effect")
+	    {
+	    	var fullscreenvideoplayer = document.getElementById("fullscreenvideoplayer");
+        	var fullscreenvideoplayersource = document.getElementById("fullscreenvideoplayer-source");
 
-        
+        	fullscreenvideoplayersource.src = websocketMessage_array["message"] + ".webm";
+        	fullscreenvideoplayer.load();
 
+        	fullscreenvideoplayer.currentTime = 0;
+        	fullscreenvideoplayer.play();
+	    }
     }
 }
 
@@ -57,7 +65,10 @@ body
     background: transparent;
     width: 1920px;
     height: 1080px;
-    color: yellow;
+    margin: 0;
+    padding: 0;
+    border: 1px solid black;
+    position: relative;
 }
 
 
@@ -66,11 +77,41 @@ body
     font-size: 90px;
     transition: all 1s;
     position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    color: white;
+    text-shadow: 3px 3px 8px rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    z-index: 1000;
+    background-color: black;
+}
+
+#fullscreenvideoplayer
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0;
+	padding: 0;
+	z-index: -1000;
+}
+
+
+#fullscreenvideoholder
+{
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 0;
+	padding: 0;
 }
 
         </style>
     </head>
     <body>
-        <h1 id="text">Greetings!</h1>
-    </body>
+        <div id="text">Greetings!</div>
+        <video id="fullscreenvideoplayer" width="1920" height="1080" autoplay>
+			<source id="fullscreenvideoplayer-source" type="video/webm">
+		</video>
 </html>

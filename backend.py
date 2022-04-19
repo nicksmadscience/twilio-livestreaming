@@ -44,7 +44,7 @@ def log(event):
 
 
 def requestHandler_index(message):
-    return "Options are 'Say', 'Color', and 'Anim'!"
+    return "Options are 'Say', 'Color', and 'Effect'!"
 
 
 def requestHandler_say(message):
@@ -71,6 +71,17 @@ def requestHandler_color(message):
     websockets.broadcast(CLIENTS, "{\"messagetype\": \"color\", \"message\": \"" + message + "\"}")
     
     return "Changed color to {color}".format(color = message)
+
+
+
+def requestHandler_effect(message):
+    global CLIENTS
+    
+    if message in ["fireworks", "snow", "warpspeed", "yahoo"]:
+        websockets.broadcast(CLIENTS, "{\"messagetype\": \"effect\", \"message\": \"" + message + "\"}")
+        return "Playing " + message
+    else:
+        return "Possible effects are: fireworks, snow, warpspeed, and yahoo"
         
     
     
@@ -80,7 +91,7 @@ def requestHandler_color(message):
 httpRequests = {''      : requestHandler_index,
                 'Say'   : requestHandler_say,
                 'Color' : requestHandler_color,
-                'Position': requestHandler_position,
+                'Effect': requestHandler_effect,
 				}
 
 class myHandler(BaseHTTPRequestHandler):
